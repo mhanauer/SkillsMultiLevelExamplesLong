@@ -1,13 +1,12 @@
 ---
-title: "Test"
+title: "Multilevel Modeling for Longitudinal Models in R"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-In this example, I am documenting how to formulate an equation for random intercepts and slopes in multilevel modeling for longitudinal models along with the r code using the nlme package with interpretation of the output.  In this current data set there are five variables id, school, interven (i.e. an intervention that students are participating in), score (i.e. the score the student received on the intervention), and sf (school funding levels).    Overall there are 1,380 participants.  In this demonstration we will want to predict a student's score on an intervention while accounting for the nesting of students within school and make the model more complicated further into the example.  Multilevel modeling for longitudinal data analysis makes sense, because the researcher can allow participants to have their own mean values (i.e. random intercepts) and or trajectories on a covariate over time (i.e. random slopes).  Allowing for random intercepts and slopes is important, because we expect that participants scores will be correlated with each other over time therefore violating one of the assumptions of linear regression.  
-
+In this example, I am documenting how to formulate an equation for random intercepts and slopes in multilevel modeling for longitudinal models along with the r code using the nlme package with interpretation of the output.  In this current data set there are five variables id, time, interven (i.e. an intervention that students are participating in), and score (i.e. the score the student received on the intervention).    Overall there are 100 participants over 10 time points.  In this demonstration we will want to predict a student's score on an intervention while accounting for the nesting of students over time and make the model more complicated further into this example.  Multilevel modeling for longitudinal data analysis makes sense, because it can account for the correlation between time points by allowing each person to have their own intercept (mean value) as well as their own trajectory (i.e. slope).  After accounting for the variance within students for their differences in intercepts and slopes, it is likely that the assumption of independent error terms will be met.
 ```{r}
 id = rep(1:100, each = 10)
 time = rep(1:10, 100)
@@ -22,14 +21,15 @@ dat = as.data.frame(cbind(id, interven, time, eth, gpa, score)); head(dat)
 ```
 Here I try to break down what each component of the equation means.
 
-gamma00 is the average or mean like score across the time points.  The indexes indicate where the parameter falls in each level.  For example, the first 0 in the gamma00 means that it is the intercept for the level one.  The second zero means that it is the mean or intercept for level two.  However, level two intercepts can vary by u0j, which will be discussed next. 
+gamma00 is the average or mean score across the time points.  The indexes indicate where the parameter falls in each level.  For example, the first 0 in the gamma00 means that it is the intercept for level one.  The second zero means that it is the mean or intercept for level two.  However, level two intercepts can vary by u0j, which will be discussed next. 
 
-u0j this is the random deviation from the intercept or initial value for each time point  This is a level two error term, which is why it only has the subscript j instead of i and j.  It has a j, because j represents all of the 200 schools (i.e. from 1 to j time points).  For example the unique deviation from the intercept for time point one would be u01.  
+u0j this is the random deviation from the intercept for each time point  This is a level two error term, which is why it only has the subscript j instead of i and j.  It has a j, because j represents all of the time points (i.e. from 1 to j time points).  For example the unique deviation from the intercept for time point one would be u01.  
 
-gamma10 is the average regression coefficient for the change associated with time variable (timeij).  It is the average change we would see given a one unit change in the independent variable (in this case one time increase).  The first 1 index means that it is the the first slope coefficient in in level one and the second 0 means that it is the average slope coefficient (i.e. no effect of any level two variables), because in this model the slope for time is not influenced by any level two variables in this model.   
+gamma10 is the average regression coefficient for the change associated with the time variable (timeij).  It is the average change we would see given a one unit change in the independent variable (in this case one time point increase).  The first 1 index means that it is the first slope coefficient in in level one and the second 0 means that it is the average slope coefficient (i.e. no effect of any level two variables), because in this model the slope for time is not influenced by any level two variables.   
 
-eij is the individual level one error term for each individual in each school. 
-$$ Level~1:~~~{y_{ij} = \beta_{0j} + \beta_{1j}(time_{ij}) + e_{ij}}~~~ (1.1)$$
+eij is the individual level one error term for each individual over each time point.
+ $$ Level~1:~~~{y_{ij} = \beta_{0j} + \beta_{1}(time_{ij}) + e_{ij}}~~~ (1.1)$$
+
 $$ Level~2~Intercept:~~~{\beta_{0j} = \gamma_{00} + u_{0j}} ~~~ (1.2)$$
 
 $$Mixed~model: ~~~{y_{ij} = \gamma_{00} + \gamma_{10}(time_{ij}) + u_{0j} + e_{ij}} ~~~(1.3)$$
